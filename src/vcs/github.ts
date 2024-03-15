@@ -77,31 +77,35 @@ export default class GitHub {
     const iter = await this.graphql(`
       query allPRs($owner: String!, $repo: String!, $num: Int = 50, $cursor: String) {
         repository(owner: $owner, name: $repo) {
-          issues(first: $num, after: $cursor) {
+          pullRequests(first: $num, after: $cursor) {
             edges {
               node {
                 title,
                 author {
-                  login,
+                  login
                 },
                 participants(first: 100) {
                   nodes {
                     login
                   },
-                  totalCount,
-                }
+                  totalCount
+                },
                 createdAt,
                 closedAt,
                 closed,
+                merged,
                 comments {
                   totalCount
                 },
                 reactions {
-                  totalCount,
+                  totalCount
                 },
                 locked,
+                additions,
+                deletions,
+                changedFiles,
               }
-            }
+            },
             pageInfo {
               hasNextPage
               endCursor

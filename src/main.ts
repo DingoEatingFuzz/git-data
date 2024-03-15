@@ -41,7 +41,7 @@ export async function main(args: Args) {
 
   if (gh) {
     console.log('Fetching all issues');
-    console.log(await gh.allIssues());
+    console.log(await gh.allPRs());
   }
 
   // Run scripts
@@ -53,8 +53,6 @@ function githubParts(repo: string): { owner: string, repo: string } | null {
     console.error('Could not parse GitHub URL');
     return null;
   }
-
-  console.log(matches);
 
   return {
     owner: matches[1] ?? '',
