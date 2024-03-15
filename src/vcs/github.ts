@@ -25,8 +25,8 @@ export default class GitHub {
   }
 
   async allIssues(options: PaginationOptions = {}) {
-    const res = await this.graphql(`
-      query allIssues($owner: String!, $repo: String!, $num: Int = 10, $cursor: String) {
+    const iter = await this.graphql(`
+      query allIssues($owner: String!, $repo: String!, $num: Int = 50, $cursor: String) {
         repository(owner: $owner, name: $repo) {
           issues(first: $num, after: $cursor) {
             edges {
@@ -63,12 +63,19 @@ export default class GitHub {
       options
     );
 
-    return res;
+    let collect = [];
+    for await (const res of iter) {
+      const issues = res.repository.issues.edges;
+      collect.push(...issues);
+      console.log(`Fetching issues ${collect.length}`);
+    }
+
+    return collect;
   }
 
   async allPRs(options: PaginationOptions = {}) {
-    const res = await this.graphql(`
-      query allPRs($owner: String!, $repo: String!, $num: Int = 10, $cursor: String) {
+    const iter = await this.graphql(`
+      query allPRs($owner: String!, $repo: String!, $num: Int = 50, $cursor: String) {
         repository(owner: $owner, name: $repo) {
           issues(first: $num, after: $cursor) {
             edges {
@@ -105,12 +112,19 @@ export default class GitHub {
       options
     );
 
-    return res;
+    let collect = [];
+    for await (const res of iter) {
+      const prs = res.repository.pullRequests.edges;
+      collect.push(...prs);
+      console.log(`Fetching pull requests ${collect.length}`);
+    }
+
+    return collect;
   }
 
   async graphql(query: string, options: GraphqlOptions = {}) {
     const { owner, repo } = this;
-    return await this.octokit.graphql.paginate(
+    return this.octokit.graphql.paginate.iterator(
       query,
       Object.assign(options, { owner, repo })
     );
