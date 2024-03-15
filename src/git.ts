@@ -1,4 +1,4 @@
-import { exists } from 'fs/promises';
+import { readdir } from 'fs/promises';
 import git, { type SimpleGit } from 'simple-git';
 
 interface GitOptions {
@@ -18,7 +18,9 @@ export default class Git {
 
   async init() {
     try {
-      if (!exists(this.dir)) {
+      const files = await readdir(this.dir);
+      if (files.length === 0) {
+        // Directory exists but it is empty
         await git().clone(this.repoUrl, this.dir);
       }
       this.git = git(this.dir);
