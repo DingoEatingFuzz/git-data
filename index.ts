@@ -8,4 +8,10 @@ const args = parseArgs({
   options: {},
 });
 
-await main(args);
+const ghPat = process.env['GH_PAT'];
+if (!ghPat) {
+  console.error('Expected GH_PAT in env.');
+  process.exit(1);
+}
+
+await main({ ...args, ghPat });
