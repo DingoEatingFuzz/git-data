@@ -23,4 +23,8 @@ package main
 // 6. Other VCS APIs
 
 func main() {
+	// TODO these should come from an args parser
+	repo := git{repoUrl: "https://github.com/hashicorp/vagrant.git", dir: "/tmp/foo"}
+	// TODO how to make this async?
+	repo.Init()
 }
