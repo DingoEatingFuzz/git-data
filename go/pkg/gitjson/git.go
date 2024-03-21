@@ -11,9 +11,10 @@ import (
 type Git struct {
 	RepoUrl string
 	Dir     string
+	Repo    *gogit.Repository
 }
 
-func (g Git) Init() Git {
+func (g *Git) Clone() *Git {
 	f, err := os.Open(g.Dir)
 	if err != nil {
 		panic(fmt.Sprintf("Could not open directory '%v': %v", g.Dir, err))
@@ -24,8 +25,9 @@ func (g Git) Init() Git {
 
 	_, err = f.Readdirnames(1)
 	if err == io.EOF {
+		fmt.Println("Cloning")
 		// Directory is empty, clone
-		_, gitErr := gogit.PlainClone(g.Dir, false, &gogit.CloneOptions{
+		repo, gitErr := gogit.PlainClone(g.Dir, false, &gogit.CloneOptions{
 			URL:      g.RepoUrl,
 			Progress: os.Stdout,
 		})
@@ -33,6 +35,17 @@ func (g Git) Init() Git {
 		if gitErr != nil {
 			panic(fmt.Sprintf("Could not clone repo: %v", gitErr))
 		}
+
+		g.Repo = repo
+	} else {
+		fmt.Println("Existing")
+		repo, gitErr := gogit.PlainOpen(g.Dir)
+
+		if gitErr != nil {
+			panic(fmt.Sprintf("Could not open repo: %v", gitErr))
+		}
+
+		g.Repo = repo
 	}
 
 	return g

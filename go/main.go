@@ -2,6 +2,8 @@ package main
 
 import (
 	"dingoeatingfuzz/git.json/cmd"
+	"fmt"
+	"os"
 )
 
 // TODO
@@ -27,5 +29,10 @@ import (
 // 6. Other VCS APIs
 
 func main() {
-	gitjson.Execute()
+	if err := gitjson.Execute(); err != nil {
+		if err != gitjson.SilentErr {
+			fmt.Fprintln(os.Stderr, err)
+		}
+		os.Exit(1)
+	}
 }
