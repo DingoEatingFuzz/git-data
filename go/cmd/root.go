@@ -3,6 +3,8 @@ package gitjson
 import (
 	"errors"
 	"fmt"
+	"net/url"
+	"os"
 
 	"dingoeatingfuzz/git.json/pkg/gitjson"
 
@@ -12,6 +14,7 @@ import (
 )
 
 var SilentErr = errors.New("SilentErr")
+var IsDevMode bool
 
 var RootCmd = &cobra.Command{
 	Use:           "gitjson",
@@ -21,24 +24,30 @@ var RootCmd = &cobra.Command{
 	SilenceUsage:  true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// TODO if the arg is a path, we should assume that the intent is to use an existing checkout
-		// dir, err := os.MkdirTemp("", "gitjson-")
-		// if err != nil {
-		// 	return err
-		// }
+		var dir string
+		var repoUrl string
+
+		if IsUrl(args[0]) {
+			tmp, err := os.MkdirTemp("", "gitjson-")
+			if err != nil {
+				return err
+			}
+			dir = tmp
+			repoUrl = args[0]
+		} else {
+			dir = args[0]
+		}
 
 		repo := &gitjson.Git{
-			RepoUrl: args[0],
-			Dir:     "dev-cache", //dir,
+			RepoUrl: repoUrl,
+			Dir:     dir,
 		}
 
 		// TODO: stick this in a go routine (all git and vcs operations should be concurrent)
-		r2 := repo.Clone()
-		fmt.Println(fmt.Sprintf("repo %v", repo))
-		fmt.Println(fmt.Sprintf("r2 %v", r2))
+		repo.Clone()
 		count := 0
 		iter, _ := repo.Repo.Log(&gogit.LogOptions{})
 		_ = iter.ForEach(func(c *object.Commit) error {
-			// fmt.Println(c)
 			count = count + 1
 			return nil
 		})
@@ -46,6 +55,11 @@ var RootCmd = &cobra.Command{
 		fmt.Println(fmt.Sprintf("%d commits", count))
 		return nil
 	},
+}
+
+func IsUrl(str string) bool {
+	u, err := url.Parse(str)
+	return err == nil && u.Scheme != "" && u.Host != ""
 }
 
 func Execute() error {
@@ -58,4 +72,9 @@ func init() {
 		cmd.Println(cmd.UsageString())
 		return SilentErr
 	})
+
+	// RootCmd.Flags().BoolVarP(
+	// 	&IsDevMode, "dev-mode", "dd", false,
+	// 	"Run in dev mode (don't use tmp directories)",
+	// )
 }
