@@ -17,7 +17,7 @@ func (pw *progressWriter) Start() {
 	// TeeReader calls pw.Write() each time a new response is received
 	_, err := io.Copy(pw.file, io.TeeReader(pw.reader, pw))
 	if err != nil {
-		p.Send(progressErrMsg{err})
+		// p.Send(progressErrMsg{err})
 	}
 }
 

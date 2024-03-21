@@ -1,5 +1,9 @@
 package main
 
+import (
+	"dingoeatingfuzz/git.json/cmd"
+)
+
 // TODO
 // 1. Port the git.ts file to golang
 // 2. Port vcs/github to golang
@@ -23,8 +27,5 @@ package main
 // 6. Other VCS APIs
 
 func main() {
-	// TODO these should come from an args parser
-	repo := git{repoUrl: "https://github.com/hashicorp/vagrant.git", dir: "/tmp/foo"}
-	// TODO how to make this async?
-	repo.Init()
+	gitjson.Execute()
 }
