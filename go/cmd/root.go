@@ -45,6 +45,7 @@ var RootCmd = &cobra.Command{
 
 		// TODO: stick this in a go routine (all git and vcs operations should be concurrent)
 		repo.Clone()
+
 		count := 0
 		iter, _ := repo.Repo.Log(&gogit.LogOptions{})
 		_ = iter.ForEach(func(c *object.Commit) error {

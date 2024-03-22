@@ -45,6 +45,23 @@ func (g *Git) Clone() *Git {
 			panic(fmt.Sprintf("Could not open repo: %v", gitErr))
 		}
 
+		remotes, rErr := repo.Remotes()
+		if rErr != nil {
+			panic(fmt.Sprintf("Could not read remotes for repo: %v", rErr))
+		}
+
+		for _, r := range remotes {
+			// Conventionally true in most cases
+			if r.Config().Name == "origin" {
+				g.RepoUrl = r.Config().URLs[0]
+				break
+			}
+		}
+
+		if g.RepoUrl == "" {
+			fmt.Println("!! No RepoUrl provided or determined for repo")
+		}
+
 		g.Repo = repo
 	}
 
