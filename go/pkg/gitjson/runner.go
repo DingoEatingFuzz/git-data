@@ -2,15 +2,15 @@ package gitjson
 
 import "fmt"
 
-type source int
+type Source int
 
 const (
-	GitSource source = iota
+	GitSource Source = iota
 	GitHubSource
 )
 
 type Script interface {
-	Source() source
+	Source() Source
 	Run(git *Git, progress func(string, float64))
 }
 
@@ -20,7 +20,7 @@ type Runner struct {
 }
 
 func (r *Runner) Run() {
-	groups := map[source][]Script{}
+	groups := map[Source][]Script{}
 
 	for _, s := range r.Scripts {
 		groups[s.Source()] = append(groups[s.Source()], s)
@@ -32,7 +32,7 @@ func (r *Runner) Run() {
 		fmt.Println("Git Sources")
 		for _, s := range groups[GitSource] {
 			s.Run(r.Git, func(msg string, progress float64) {
-				fmt.Println(fmt.Sprintf("(%f) %v", progress, msg))
+				fmt.Println(fmt.Sprintf("(%d) %v", int(progress*100), msg))
 			})
 		}
 	}

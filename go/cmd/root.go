@@ -2,14 +2,12 @@ package gitjson
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 	"os"
 
 	"dingoeatingfuzz/git.json/pkg/gitjson"
+	scripts "dingoeatingfuzz/git.json/pkg/gitjson/scripts"
 
-	gogit "github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +21,6 @@ var RootCmd = &cobra.Command{
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// TODO if the arg is a path, we should assume that the intent is to use an existing checkout
 		var dir string
 		var repoUrl string
 
@@ -50,14 +47,16 @@ var RootCmd = &cobra.Command{
 		// TODO: stick this in a go routine (all git and vcs operations should be concurrent)
 		repo.Clone()
 
-		count := 0
-		iter, _ := repo.Repo.Log(&gogit.LogOptions{})
-		_ = iter.ForEach(func(c *object.Commit) error {
-			count = count + 1
-			return nil
-		})
+		// Create runner and run
+		runner := &gitjson.Runner{
+			Scripts: []gitjson.Script{
+				&scripts.AllCommits{},
+			},
+			Git: repo,
+		}
 
-		fmt.Println(fmt.Sprintf("%d commits", count))
+		runner.Run()
+
 		return nil
 	},
 }
