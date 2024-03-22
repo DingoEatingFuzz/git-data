@@ -6,6 +6,7 @@ import (
 	"os"
 
 	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/storage/memory"
 )
 
 type Git struct {
@@ -15,19 +16,9 @@ type Git struct {
 }
 
 func (g *Git) Clone() *Git {
-	f, err := os.Open(g.Dir)
-	if err != nil {
-		panic(fmt.Sprintf("Could not open directory '%v': %v", g.Dir, err))
-	}
-	defer f.Close()
-
-	// Check if dir == :memory: and clone using memory storage
-
-	_, err = f.Readdirnames(1)
-	if err == io.EOF {
-		fmt.Println("Cloning")
-		// Directory is empty, clone
-		repo, gitErr := gogit.PlainClone(g.Dir, false, &gogit.CloneOptions{
+	if g.Dir == ":memory:" {
+		fmt.Println("Cloning in memory")
+		repo, gitErr := gogit.Clone(memory.NewStorage(), nil, &gogit.CloneOptions{
 			URL:      g.RepoUrl,
 			Progress: os.Stdout,
 		})
@@ -38,31 +29,53 @@ func (g *Git) Clone() *Git {
 
 		g.Repo = repo
 	} else {
-		fmt.Println("Existing")
-		repo, gitErr := gogit.PlainOpen(g.Dir)
-
-		if gitErr != nil {
-			panic(fmt.Sprintf("Could not open repo: %v", gitErr))
+		f, err := os.Open(g.Dir)
+		if err != nil {
+			panic(fmt.Sprintf("Could not open directory '%v': %v", g.Dir, err))
 		}
+		defer f.Close()
 
-		remotes, rErr := repo.Remotes()
-		if rErr != nil {
-			panic(fmt.Sprintf("Could not read remotes for repo: %v", rErr))
-		}
+		_, err = f.Readdirnames(1)
+		if err == io.EOF {
+			fmt.Println("Cloning")
+			// Directory is empty, clone
+			repo, gitErr := gogit.PlainClone(g.Dir, false, &gogit.CloneOptions{
+				URL:      g.RepoUrl,
+				Progress: os.Stdout,
+			})
 
-		for _, r := range remotes {
-			// Conventionally true in most cases
-			if r.Config().Name == "origin" {
-				g.RepoUrl = r.Config().URLs[0]
-				break
+			if gitErr != nil {
+				panic(fmt.Sprintf("Could not clone repo: %v", gitErr))
 			}
-		}
 
-		if g.RepoUrl == "" {
-			fmt.Println("!! No RepoUrl provided or determined for repo")
-		}
+			g.Repo = repo
+		} else {
+			fmt.Println("Existing")
+			repo, gitErr := gogit.PlainOpen(g.Dir)
 
-		g.Repo = repo
+			if gitErr != nil {
+				panic(fmt.Sprintf("Could not open repo: %v", gitErr))
+			}
+
+			remotes, rErr := repo.Remotes()
+			if rErr != nil {
+				panic(fmt.Sprintf("Could not read remotes for repo: %v", rErr))
+			}
+
+			for _, r := range remotes {
+				// Conventionally true in most cases
+				if r.Config().Name == "origin" {
+					g.RepoUrl = r.Config().URLs[0]
+					break
+				}
+			}
+
+			if g.RepoUrl == "" {
+				fmt.Println("!! No RepoUrl provided or determined for repo")
+			}
+
+			g.Repo = repo
+		}
 	}
 
 	return g

@@ -14,7 +14,7 @@ import (
 )
 
 var SilentErr = errors.New("SilentErr")
-var IsDevMode bool
+var UseDisk bool
 
 var RootCmd = &cobra.Command{
 	Use:           "gitjson",
@@ -28,11 +28,15 @@ var RootCmd = &cobra.Command{
 		var repoUrl string
 
 		if IsUrl(args[0]) {
-			tmp, err := os.MkdirTemp("", "gitjson-")
-			if err != nil {
-				return err
+			if UseDisk {
+				tmp, err := os.MkdirTemp("", "gitjson-")
+				if err != nil {
+					return err
+				}
+				dir = tmp
+			} else {
+				dir = ":memory:"
 			}
-			dir = tmp
 			repoUrl = args[0]
 		} else {
 			dir = args[0]
@@ -74,8 +78,8 @@ func init() {
 		return SilentErr
 	})
 
-	// RootCmd.Flags().BoolVarP(
-	// 	&IsDevMode, "dev-mode", "dd", false,
-	// 	"Run in dev mode (don't use tmp directories)",
-	// )
+	RootCmd.Flags().BoolVarP(
+		&UseDisk, "use-disk", "u", false,
+		"Clone repo to disk instead of in memory",
+	)
 }
