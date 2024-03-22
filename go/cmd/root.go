@@ -81,4 +81,6 @@ func init() {
 		&UseDisk, "use-disk", "u", false,
 		"Clone repo to disk instead of in memory",
 	)
+
+	// TODO: add destination dir flag (assume ./ by default)
 }

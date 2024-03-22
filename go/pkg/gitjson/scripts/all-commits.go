@@ -49,6 +49,7 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
 	}
 	defer f.Close()
 
+	// TODO: Should scripts be responsible for writing files? Or should they send bytes to a channel?
 	w := bufio.NewWriter(f)
 
 	iter, _ := git.Repo.Log(&gogit.LogOptions{})

@@ -9,8 +9,10 @@ const (
 	GitHubSource
 )
 
+// TODO: thread bubbletea in here somehow
 type Script interface {
 	Source() Source
+	// TODO: If progress is going to channel bytes, maybe we need lifecycle hooks
 	Run(git *Git, progress func(string, float64))
 }
 
