@@ -1,9 +1,11 @@
 package gitjson
 
 import (
+	"bufio"
 	gitjson "dingoeatingfuzz/git.json/pkg/gitjson"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	gogit "github.com/go-git/go-git/v5"
@@ -29,19 +31,29 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
 	count := 0
 	curr := 0
 	skipped := 0
+	totalBytes := 0
 
 	// I wish there was a better way to do this, thought go-git would be more feature complete
 	countIter, _ := git.Repo.Log(&gogit.LogOptions{})
 	_ = countIter.ForEach(func(c *object.Commit) error {
-		count = count + 1
+		count += 1
 		return nil
 	})
 
 	progress(fmt.Sprintf("Logging %d commits in main branch", count), 0)
 
+	f, err := os.Create("all-commits.ndjson")
+	if err != nil {
+		progress("Cannot create a file, aborting", 0)
+		return
+	}
+	defer f.Close()
+
+	w := bufio.NewWriter(f)
+
 	iter, _ := git.Repo.Log(&gogit.LogOptions{})
 	_ = iter.ForEach(func(c *object.Commit) error {
-		curr = curr + 1
+		curr += 1
 
 		commit := &GitCommit{
 			Author:         c.Author.Name,
@@ -54,14 +66,23 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
 
 		str, err := json.Marshal(commit)
 		if err != nil {
-			skipped = skipped + 1
+			skipped += 1
+			return nil
 		}
 
+		b, werr := w.Write(str)
+		if werr != nil {
+			skipped += 1
+			return nil
+		}
+
+		totalBytes += b
 		if curr%1000 == 0 {
 			progress(string(str), float64(curr)/float64(count))
 		}
 
-		// Log the commit to a file
 		return nil
 	})
+
+	w.Flush()
 }
