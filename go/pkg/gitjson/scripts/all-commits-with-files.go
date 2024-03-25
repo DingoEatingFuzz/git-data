@@ -12,9 +12,16 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
-type AllCommits struct{}
+type AllCommitsWithFiles struct{}
 
-type GitCommit struct {
+type GitFile struct {
+	Name      string `json:"name"`
+	Additions int    `json:"additions"`
+	Deletions int    `json:"deletions"`
+}
+
+// Getting files is ~100x slower than just reading the log
+type GitCommitWithFiles struct {
 	Author         string    `json:"author"`
 	AuthorEmail    string    `json:"authorEmail"`
 	Committer      string    `json:"committer"`
@@ -22,13 +29,16 @@ type GitCommit struct {
 	Date           time.Time `json:"date"`
 	Message        string    `json:"message"`
 	Hash           string    `json:"hash"`
+	Additions      int       `json:"additions"`
+	Deletions      int       `json:"deletions"`
+	Files          []GitFile `json:"files"`
 }
 
-func (ac *AllCommits) Source() gitjson.Source {
+func (ac *AllCommitsWithFiles) Source() gitjson.Source {
 	return gitjson.GitSource
 }
 
-func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
+func (ac *AllCommitsWithFiles) Run(git *gitjson.Git, progress func(string, float64)) {
 	count := 0
 	curr := 0
 	skipped := 0
@@ -43,7 +53,7 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
 
 	progress(fmt.Sprintf("Logging %d commits in main branch", count), 0)
 
-	f, err := os.Create("all-commits.ndjson")
+	f, err := os.Create("all-commits-with-files.ndjson")
 	if err != nil {
 		progress("Cannot create a file, aborting", 0)
 		return
@@ -57,7 +67,24 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
 	_ = iter.ForEach(func(c *object.Commit) error {
 		curr += 1
 
-		commit := &GitCommit{
+		additions := 0
+		deletions := 0
+		var files []GitFile
+
+		stats, err := c.Stats()
+		for _, f := range stats {
+			additions += f.Addition
+			deletions += f.Deletion
+			files = append(files,
+				GitFile{
+					Name:      f.Name,
+					Additions: f.Addition,
+					Deletions: f.Deletion,
+				},
+			)
+		}
+
+		commit := &GitCommitWithFiles{
 			Author:         c.Author.Name,
 			AuthorEmail:    c.Author.Email,
 			Committer:      c.Committer.Name,
@@ -65,6 +92,9 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
 			Date:           c.Committer.When,
 			Message:        c.Message,
 			Hash:           c.Hash.String(),
+			Additions:      additions,
+			Deletions:      deletions,
+			Files:          files,
 		}
 
 		str, err := json.Marshal(commit)

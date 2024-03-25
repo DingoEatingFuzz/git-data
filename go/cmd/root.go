@@ -51,6 +51,7 @@ var RootCmd = &cobra.Command{
 		runner := &gitjson.Runner{
 			Scripts: []gitjson.Script{
 				&scripts.AllCommits{},
+				&scripts.AllCommitsWithFiles{},
 			},
 			Git: repo,
 		}
