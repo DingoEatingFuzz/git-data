@@ -21,6 +21,9 @@ type GitCommit struct {
 	CommitterEmail string    `json:"committerEmail"`
 	Date           time.Time `json:"date"`
 	Message        string    `json:"message"`
+	Hash           string    `json:"hash"`
+	Additions      int       `json:"additions"`
+	Deletions      int       `json:"deletions"`
 }
 
 func (ac *AllCommits) Source() gitjson.Source {
@@ -56,6 +59,16 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
 	_ = iter.ForEach(func(c *object.Commit) error {
 		curr += 1
 
+		additions := 0
+		deletions := 0
+
+		// Doing this is super slow, like 100x slower than not doing it
+		stats, err := c.Stats()
+		for _, f := range stats {
+			additions += f.Addition
+			deletions += f.Deletion
+		}
+
 		commit := &GitCommit{
 			Author:         c.Author.Name,
 			AuthorEmail:    c.Author.Email,
@@ -63,6 +76,9 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
 			CommitterEmail: c.Committer.Email,
 			Date:           c.Committer.When,
 			Message:        c.Message,
+			Hash:           c.Hash.String(),
+			Additions:      additions,
+			Deletions:      deletions,
 		}
 
 		str, err := json.Marshal(commit)
