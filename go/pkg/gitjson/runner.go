@@ -2,8 +2,6 @@ package gitjson
 
 import (
 	"dingoeatingfuzz/git.json/ui"
-	"fmt"
-	"os"
 
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
@@ -68,10 +66,19 @@ func (r *Runner) Run() {
 
 	p = tea.NewProgram(m)
 
+	// Yolo?
+	go p.Run()
+
+	/// if _, err := p.Run(); err != nil {
+	/// 	fmt.Println("error running program:", err)
+	/// 	os.Exit(1)
+	/// }
+
 	// Second pass: run the scripts
 	if len(groups[GitSource]) > 0 {
 		for i, s := range groups[GitSource] {
-			go s.Run(r.Git, func(msg string, progress float64) {
+			// TODO: This should be concurrent, but we need to figure out file locking and such first
+			s.Run(r.Git, func(msg string, progress float64) {
 				// fmt.Println(fmt.Sprintf("Progress on %v (%d)", msg, int(progress*100)))
 				p.Send(ui.ProgressMsg{
 					Group:   "Git Sources",
@@ -81,10 +88,5 @@ func (r *Runner) Run() {
 				})
 			})
 		}
-	}
-
-	if _, err := p.Run(); err != nil {
-		fmt.Println("error running program:", err)
-		os.Exit(1)
 	}
 }
