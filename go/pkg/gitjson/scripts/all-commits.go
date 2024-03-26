@@ -35,13 +35,21 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
 	totalBytes := 0
 
 	// I wish there was a better way to do this, thought go-git would be more feature complete
-	countIter, _ := git.Repo.Log(&gogit.LogOptions{})
-	_ = countIter.ForEach(func(c *object.Commit) error {
+	countIter, logErr := git.Repo.Log(&gogit.LogOptions{})
+	if logErr != nil {
+		progress(fmt.Sprintf("Woah error: %v", logErr), 0)
+		return
+	}
+
+	err := countIter.ForEach(func(c *object.Commit) error {
 		count += 1
 		return nil
 	})
 
-	progress(fmt.Sprintf("Logging %d commits in main branch", count), 0)
+	if err != nil {
+		progress(fmt.Sprintf("Woah error: %v", err), 0)
+		return
+	}
 
 	f, err := os.Create("all-commits.ndjson")
 	if err != nil {
@@ -80,9 +88,7 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
 		}
 
 		totalBytes += b
-		if curr%1000 == 0 {
-			progress(string(str), float64(curr)/float64(count))
-		}
+		progress(fmt.Sprintf("%d of %d commits", curr, count), float64(curr)/float64(count))
 
 		return nil
 	})
