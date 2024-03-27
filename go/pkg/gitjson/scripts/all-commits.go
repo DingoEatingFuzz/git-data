@@ -28,6 +28,10 @@ func (ac *AllCommits) Source() gitjson.Source {
 	return gitjson.GitSource
 }
 
+func (ac *AllCommits) Name() string {
+	return "All Commits"
+}
+
 func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64, bool)) {
 	count := 0
 	curr := 0

@@ -13,6 +13,7 @@ const (
 
 type Bar struct {
 	Bar     progress.Model
+	Name    string
 	Message string
 	Done    bool
 }
@@ -74,7 +75,7 @@ func (m Group) View() string {
 		if b.Done {
 			prefix = "✓ "
 		}
-		bars = append(bars, b.Bar.View()+"\n"+prefix+b.Message)
+		bars = append(bars, b.Bar.View()+"\n"+prefix+b.Name+": "+b.Message)
 	}
 
 	return m.Name + "\n" + strings.Join(bars, "\n")
