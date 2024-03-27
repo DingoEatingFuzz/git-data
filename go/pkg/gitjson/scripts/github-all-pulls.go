@@ -137,29 +137,29 @@ func (ai *GitHubAllPulls) Run(git *gitjson.Git, progress func(string, float64, b
 			return
 		}
 
-		for _, issue := range q.Repository.PullRequests.Edges {
+		for _, pull := range q.Repository.PullRequests.Edges {
 			// Count position across batch requests
 			curr++
 			var participants []string
-			for _, p := range issue.Node.Participants.Nodes {
+			for _, p := range pull.Node.Participants.Nodes {
 				participants = append(participants, string(p.Login))
 			}
 
 			row := &GitHubPullRequest{
-				Title:          string(issue.Node.Title),
-				Author:         string(issue.Node.Author.Login),
-				Url:            string(issue.Node.Url),
-				CreatedAt:      issue.Node.CreatedAt.Time,
-				ClosedAt:       issue.Node.ClosedAt.Time,
-				Closed:         bool(issue.Node.Closed),
-				Locked:         bool(issue.Node.Locked),
-				Merged:         bool(issue.Node.Merged),
-				Additions:      int(issue.Node.Additions),
-				Deletions:      int(issue.Node.Deletions),
-				ChangedFiles:   int(issue.Node.ChangedFiles),
+				Title:          string(pull.Node.Title),
+				Author:         string(pull.Node.Author.Login),
+				Url:            string(pull.Node.Url),
+				CreatedAt:      pull.Node.CreatedAt.Time,
+				ClosedAt:       pull.Node.ClosedAt.Time,
+				Closed:         bool(pull.Node.Closed),
+				Locked:         bool(pull.Node.Locked),
+				Merged:         bool(pull.Node.Merged),
+				Additions:      int(pull.Node.Additions),
+				Deletions:      int(pull.Node.Deletions),
+				ChangedFiles:   int(pull.Node.ChangedFiles),
 				Participants:   participants,
-				CommentsCount:  int(issue.Node.Comments.TotalCount),
-				ReactionsCount: int(issue.Node.Reactions.TotalCount),
+				CommentsCount:  int(pull.Node.Comments.TotalCount),
+				ReactionsCount: int(pull.Node.Reactions.TotalCount),
 			}
 
 			str, err := json.Marshal(row)
@@ -168,7 +168,7 @@ func (ai *GitHubAllPulls) Run(git *gitjson.Git, progress func(string, float64, b
 			}
 
 			w.Write(str)
-			progress(fmt.Sprintf("%d of %d issues", curr, length), float64(curr)/float64(length), false)
+			progress(fmt.Sprintf("%d of %d pulls", curr, length), float64(curr)/float64(length), false)
 		}
 
 		if !q.Repository.PullRequests.PageInfo.HasNextPage {
