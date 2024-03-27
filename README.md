@@ -17,18 +17,6 @@ Git is an invaluable data source but it's trapped in its built-for-purpose blobs
 You can use git.json as a standalone tool:
 
 ```shellsession
-$ npx git.json https://github.com/hashicorp/vagrant
+$ git.json https://github.com/hashicorp/vagrant
 generating files...
-```
-
-Or as a package in your own JS/TS scripts:
-
-```js
-import GJ from 'git.json'
-
-const repo = await GJ.init('https://github.com/hashicorp/vagrant');
-const log = await repo.log();
-
-const jan1 = new Date('01/01/2024');
-const yearToDate = log.filter(commit => commit.date > jan1);
 ```
