@@ -20,6 +20,7 @@ type issue struct {
 	Node struct {
 		Title        githubv4.String
 		Author       user
+		Url          githubv4.String
 		CreatedAt    githubv4.DateTime
 		ClosedAt     githubv4.DateTime
 		Closed       githubv4.Boolean
@@ -39,6 +40,7 @@ type issue struct {
 type GitHubIssue struct {
 	Title          string    `json:"title"`
 	Author         string    `json:"author"`
+	Url            string    `json:"url"`
 	CreatedAt      time.Time `json:"createdAt"`
 	ClosedAt       time.Time `json:"closedAt"`
 	Closed         bool      `json:"closed"`
@@ -142,6 +144,7 @@ func (ai *GitHubAllIssues) Run(git *gitjson.Git, progress func(string, float64, 
 			row := &GitHubIssue{
 				Title:          string(issue.Node.Title),
 				Author:         string(issue.Node.Author.Login),
+				Url:            string(issue.Node.Url),
 				CreatedAt:      issue.Node.CreatedAt.Time,
 				ClosedAt:       issue.Node.ClosedAt.Time,
 				Closed:         bool(issue.Node.Closed),

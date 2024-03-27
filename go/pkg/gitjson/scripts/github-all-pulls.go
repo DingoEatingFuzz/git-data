@@ -20,6 +20,7 @@ type pullRequest struct {
 	Node struct {
 		Title        githubv4.String
 		Author       user
+		Url          githubv4.String
 		CreatedAt    githubv4.DateTime
 		ClosedAt     githubv4.DateTime
 		Closed       githubv4.Boolean
@@ -43,6 +44,7 @@ type pullRequest struct {
 type GitHubPullRequest struct {
 	Title          string    `json:"title"`
 	Author         string    `json:"author"`
+	Url            string    `json:"url"`
 	CreatedAt      time.Time `json:"createdAt"`
 	ClosedAt       time.Time `json:"closedAt"`
 	Closed         bool      `json:"closed"`
@@ -146,6 +148,7 @@ func (ai *GitHubAllPulls) Run(git *gitjson.Git, progress func(string, float64, b
 			row := &GitHubPullRequest{
 				Title:          string(issue.Node.Title),
 				Author:         string(issue.Node.Author.Login),
+				Url:            string(issue.Node.Url),
 				CreatedAt:      issue.Node.CreatedAt.Time,
 				ClosedAt:       issue.Node.ClosedAt.Time,
 				Closed:         bool(issue.Node.Closed),
