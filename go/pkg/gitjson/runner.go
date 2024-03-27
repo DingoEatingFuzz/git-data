@@ -19,6 +19,7 @@ const (
 // TODO: thread bubbletea in here somehow
 type Script interface {
 	Source() Source
+	Name() string
 	// TODO: If progress is going to channel bytes, maybe we need lifecycle hooks
 	Run(git *Git, progress func(string, float64, bool))
 }
@@ -45,9 +46,10 @@ func (r *Runner) Run() {
 			Name: "Git Sources",
 		})
 
-		for range groups[GitSource] {
+		for _, s := range groups[GitSource] {
 			m.Groups[0].Bars = append(m.Groups[0].Bars, &ui.Bar{
 				Bar:     progress.New(progress.WithDefaultGradient()),
+				Name:    s.Name(),
 				Message: "Pending...",
 			})
 		}
@@ -58,9 +60,10 @@ func (r *Runner) Run() {
 			Name: "GitHub Sources",
 		})
 
-		for range groups[GitHubSource] {
-			m.Groups[0].Bars = append(m.Groups[0].Bars, &ui.Bar{
+		for _, s := range groups[GitHubSource] {
+			m.Groups[1].Bars = append(m.Groups[1].Bars, &ui.Bar{
 				Bar:     progress.New(progress.WithDefaultGradient()),
+				Name:    s.Name(),
 				Message: "Pending...",
 			})
 		}
@@ -74,7 +77,6 @@ func (r *Runner) Run() {
 		go func() {
 			for i, s := range groups[GitSource] {
 				s.Run(r.Git, func(msg string, progress float64, done bool) {
-					// fmt.Println(fmt.Sprintf("Progress on %v (%d)", msg, int(progress*100)))
 					p.Send(ui.ProgressMsg{
 						Group:   "Git Sources",
 						BarIdx:  i,
@@ -85,6 +87,20 @@ func (r *Runner) Run() {
 				})
 			}
 		}()
+	}
+
+	if len(groups[GitHubSource]) > 0 {
+		for i, s := range groups[GitHubSource] {
+			go s.Run(r.Git, func(msg string, progress float64, done bool) {
+				p.Send(ui.ProgressMsg{
+					Group:   "GitHub Sources",
+					BarIdx:  i,
+					Message: msg,
+					Percent: progress,
+					Done:    done,
+				})
+			})
+		}
 	}
 
 	if _, err := p.Run(); err != nil {
