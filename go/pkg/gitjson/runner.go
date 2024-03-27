@@ -41,32 +41,28 @@ func (r *Runner) Run() {
 	m := ui.UiModel{}
 
 	// First pass: initialize the model
-	if len(groups[GitSource]) > 0 {
-		m.Groups = append(m.Groups, ui.Group{
-			Name: "Git Sources",
-		})
+	m.Groups = append(m.Groups, ui.Group{
+		Name: "Git Sources",
+	})
 
-		for _, s := range groups[GitSource] {
-			m.Groups[0].Bars = append(m.Groups[0].Bars, &ui.Bar{
-				Bar:     progress.New(progress.WithDefaultGradient()),
-				Name:    s.Name(),
-				Message: "Pending...",
-			})
-		}
+	for _, s := range groups[GitSource] {
+		m.Groups[0].Bars = append(m.Groups[0].Bars, &ui.Bar{
+			Bar:     progress.New(progress.WithDefaultGradient()),
+			Name:    s.Name(),
+			Message: "Pending...",
+		})
 	}
 
-	if len(groups[GitHubSource]) > 0 {
-		m.Groups = append(m.Groups, ui.Group{
-			Name: "GitHub Sources",
-		})
+	m.Groups = append(m.Groups, ui.Group{
+		Name: "GitHub Sources",
+	})
 
-		for _, s := range groups[GitHubSource] {
-			m.Groups[1].Bars = append(m.Groups[1].Bars, &ui.Bar{
-				Bar:     progress.New(progress.WithDefaultGradient()),
-				Name:    s.Name(),
-				Message: "Pending...",
-			})
-		}
+	for _, s := range groups[GitHubSource] {
+		m.Groups[1].Bars = append(m.Groups[1].Bars, &ui.Bar{
+			Bar:     progress.New(progress.WithDefaultGradient()),
+			Name:    s.Name(),
+			Message: "Pending...",
+		})
 	}
 
 	p = tea.NewProgram(m)

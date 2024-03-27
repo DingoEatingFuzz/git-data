@@ -70,6 +70,10 @@ func (m Group) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Group) View() string {
 	var bars []string
 
+	if len(m.Bars) == 0 {
+		return ""
+	}
+
 	for _, b := range m.Bars {
 		prefix := ""
 		if b.Done {
@@ -78,5 +82,5 @@ func (m Group) View() string {
 		bars = append(bars, b.Bar.View()+"\n"+prefix+b.Name+": "+b.Message)
 	}
 
-	return m.Name + "\n" + strings.Join(bars, "\n")
+	return m.Name + "\n" + strings.Join(bars, "\n") + "\n"
 }

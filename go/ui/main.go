@@ -66,5 +66,5 @@ func (m UiModel) View() string {
 		groups = append(groups, g.View())
 	}
 
-	return strings.Join(groups, "\n\n") + "\n"
+	return strings.Join(groups, "\n") + "\n"
 }
