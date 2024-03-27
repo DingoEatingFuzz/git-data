@@ -1,7 +1,7 @@
 package main
 
 import (
-	"dingoeatingfuzz/git.json/cmd"
+	"dingoeatingfuzz/git-data/cmd"
 	"fmt"
 	"os"
 )

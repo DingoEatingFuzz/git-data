@@ -1,4 +1,4 @@
-module dingoeatingfuzz/git.json
+module dingoeatingfuzz/git-data
 
 go 1.22.1
 
