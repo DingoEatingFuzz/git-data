@@ -53,6 +53,7 @@ var RootCmd = &cobra.Command{
 				&scripts.AllCommits{},
 				&scripts.AllCommitsWithFiles{},
 				&scripts.GitHubAllIssues{},
+				&scripts.GitHubAllPulls{},
 			},
 			Git: repo,
 		}
