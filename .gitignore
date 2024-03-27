@@ -22,4 +22,5 @@ go.work
 
 
 # go things
-go/git.json
+git.json
+git-data
