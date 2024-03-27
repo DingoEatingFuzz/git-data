@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 	"time"
 
 	gogit "github.com/go-git/go-git/v5"
@@ -22,6 +23,8 @@ type GitFile struct {
 
 // Getting files is ~100x slower than just reading the log
 type GitCommitWithFiles struct {
+	Owner          string    `json:"owner"`
+	Repo           string    `json:"repo"`
 	Author         string    `json:"author"`
 	AuthorEmail    string    `json:"authorEmail"`
 	Committer      string    `json:"committer"`
@@ -46,6 +49,11 @@ func (ac *AllCommitsWithFiles) Run(git *gitjson.Git, progress func(string, float
 	curr := 0
 	skipped := 0
 	totalBytes := 0
+
+	r, _ := regexp.Compile("github.com/(.+?)/(.+?)(/|\\.git)?$")
+	matches := r.FindStringSubmatch(git.RepoUrl)
+	owner := matches[1]
+	repo := matches[2]
 
 	// I wish there was a better way to do this, thought go-git would be more feature complete
 	countIter, logErr := git.Repo.Log(&gogit.LogOptions{})
@@ -98,6 +106,8 @@ func (ac *AllCommitsWithFiles) Run(git *gitjson.Git, progress func(string, float
 		}
 
 		commit := &GitCommitWithFiles{
+			Owner:          owner,
+			Repo:           repo,
 			Author:         c.Author.Name,
 			AuthorEmail:    c.Author.Email,
 			Committer:      c.Committer.Name,

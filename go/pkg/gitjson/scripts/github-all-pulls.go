@@ -42,6 +42,8 @@ type pullRequest struct {
 }
 
 type GitHubPullRequest struct {
+	Owner          string    `json:"owner"`
+	Repo           string    `json:"repo"`
 	Title          string    `json:"title"`
 	Author         string    `json:"author"`
 	Url            string    `json:"url"`
@@ -146,6 +148,8 @@ func (ai *GitHubAllPulls) Run(git *gitjson.Git, progress func(string, float64, b
 			}
 
 			row := &GitHubPullRequest{
+				Owner:          owner,
+				Repo:           repo,
 				Title:          string(pull.Node.Title),
 				Author:         string(pull.Node.Author.Login),
 				Url:            string(pull.Node.Url),

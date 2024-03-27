@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 	"time"
 
 	gogit "github.com/go-git/go-git/v5"
@@ -15,6 +16,8 @@ import (
 type AllCommits struct{}
 
 type GitCommit struct {
+	Owner          string    `json:"owner"`
+	Repo           string    `json:"repo"`
 	Author         string    `json:"author"`
 	AuthorEmail    string    `json:"authorEmail"`
 	Committer      string    `json:"committer"`
@@ -37,6 +40,11 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64, bool)
 	curr := 0
 	skipped := 0
 	totalBytes := 0
+
+	r, _ := regexp.Compile("github.com/(.+?)/(.+?)(/|\\.git)?$")
+	matches := r.FindStringSubmatch(git.RepoUrl)
+	owner := matches[1]
+	repo := matches[2]
 
 	// I wish there was a better way to do this, thought go-git would be more feature complete
 	countIter, logErr := git.Repo.Log(&gogit.LogOptions{})
@@ -70,6 +78,8 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64, bool)
 		curr += 1
 
 		commit := &GitCommit{
+			Owner:          owner,
+			Repo:           repo,
 			Author:         c.Author.Name,
 			AuthorEmail:    c.Author.Email,
 			Committer:      c.Committer.Name,

@@ -38,6 +38,8 @@ type issue struct {
 }
 
 type GitHubIssue struct {
+	Owner          string    `json:"owner"`
+	Repo           string    `json:"repo"`
 	Title          string    `json:"title"`
 	Author         string    `json:"author"`
 	Url            string    `json:"url"`
@@ -142,6 +144,8 @@ func (ai *GitHubAllIssues) Run(git *gitjson.Git, progress func(string, float64, 
 			}
 
 			row := &GitHubIssue{
+				Owner:          owner,
+				Repo:           repo,
 				Title:          string(issue.Node.Title),
 				Author:         string(issue.Node.Author.Login),
 				Url:            string(issue.Node.Url),
