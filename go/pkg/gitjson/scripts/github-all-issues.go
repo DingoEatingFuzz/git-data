@@ -86,29 +86,31 @@ func (ai *GitHubAllIssues) Run(git *gitjson.Git, progress func(string, float64, 
 		} `graphql:"repository(owner: $owner, name: $repo)"`
 	}
 
+	var c struct {
+		Repository struct {
+			Issues struct {
+				TotalCount githubv4.Int
+			}
+		} `graphql:"repository(owner: $owner, name: $repo)"`
+	}
+
+	err := client.Query(context.Background(), &c, map[string]interface{}{
+		"owner": githubv4.String(owner),
+		"repo":  githubv4.String(repo),
+	})
+
+	if err != nil {
+		progress(fmt.Sprintf("Woah error: %v", err), 0, false)
+		return
+	}
+
+	length := int(c.Repository.Issues.TotalCount)
+
 	variables := map[string]interface{}{
 		"owner":  githubv4.String(owner),
 		"repo":   githubv4.String(repo),
 		"num":    githubv4.Int(50),
 		"cursor": (*githubv4.String)(nil), // Null after argument to get first page.
-	}
-
-	var allIssues []issue
-
-	for {
-		err := client.Query(context.Background(), &q, variables)
-		if err != nil {
-			progress(fmt.Sprintf("Woah error: %v", err), 0, false)
-			return
-		}
-
-		allIssues = append(allIssues, q.Repository.Issues.Edges...)
-
-		if !q.Repository.Issues.PageInfo.HasNextPage {
-			break
-		}
-
-		variables["cursor"] = githubv4.NewString(q.Repository.Issues.PageInfo.EndCursor)
 	}
 
 	f, err := os.Create("github-all-issues.ndjson")
@@ -120,33 +122,51 @@ func (ai *GitHubAllIssues) Run(git *gitjson.Git, progress func(string, float64, 
 
 	// TODO: Should scripts be responsible for writing files? Or should they send bytes to a channel?
 	w := bufio.NewWriter(f)
-	length := len(allIssues)
+	curr := 0
 
-	for i, issue := range allIssues {
-		var participants []string
-		for _, p := range issue.Node.Participants.Nodes {
-			participants = append(participants, string(p.Login))
-		}
-
-		row := &GitHubIssue{
-			Title:          string(issue.Node.Title),
-			Author:         string(issue.Node.Author.Login),
-			CreatedAt:      issue.Node.CreatedAt.Time,
-			ClosedAt:       issue.Node.ClosedAt.Time,
-			Closed:         bool(issue.Node.Closed),
-			Locked:         bool(issue.Node.Locked),
-			Participants:   participants,
-			CommentsCount:  int(issue.Node.Comments.TotalCount),
-			ReactionsCount: int(issue.Node.Reactions.TotalCount),
-		}
-
-		str, err := json.Marshal(row)
+	for {
+		err := client.Query(context.Background(), &q, variables)
 		if err != nil {
-			continue
+			progress(fmt.Sprintf("Woah error: %v", err), 0, false)
+			return
 		}
 
-		w.Write(str)
+		for _, issue := range q.Repository.Issues.Edges {
+			// Count position across batch requests
+			curr++
+			var participants []string
+			for _, p := range issue.Node.Participants.Nodes {
+				participants = append(participants, string(p.Login))
+			}
 
-		progress(fmt.Sprintf("%d of %d issues", i, length), float64(i)/float64(length), i == length)
+			row := &GitHubIssue{
+				Title:          string(issue.Node.Title),
+				Author:         string(issue.Node.Author.Login),
+				CreatedAt:      issue.Node.CreatedAt.Time,
+				ClosedAt:       issue.Node.ClosedAt.Time,
+				Closed:         bool(issue.Node.Closed),
+				Locked:         bool(issue.Node.Locked),
+				Participants:   participants,
+				CommentsCount:  int(issue.Node.Comments.TotalCount),
+				ReactionsCount: int(issue.Node.Reactions.TotalCount),
+			}
+
+			str, err := json.Marshal(row)
+			if err != nil {
+				continue
+			}
+
+			w.Write(str)
+			progress(fmt.Sprintf("%d of %d issues", curr, length), float64(curr)/float64(length), false)
+		}
+
+		if !q.Repository.Issues.PageInfo.HasNextPage {
+			break
+		}
+
+		variables["cursor"] = githubv4.NewString(q.Repository.Issues.PageInfo.EndCursor)
 	}
+
+	w.Flush()
+	progress("No more pages", 1, true)
 }
