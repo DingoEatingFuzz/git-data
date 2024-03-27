@@ -28,7 +28,7 @@ func (ac *AllCommits) Source() gitjson.Source {
 	return gitjson.GitSource
 }
 
-func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
+func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64, bool)) {
 	count := 0
 	curr := 0
 	skipped := 0
@@ -37,7 +37,7 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
 	// I wish there was a better way to do this, thought go-git would be more feature complete
 	countIter, logErr := git.Repo.Log(&gogit.LogOptions{})
 	if logErr != nil {
-		progress(fmt.Sprintf("Woah error: %v", logErr), 0)
+		progress(fmt.Sprintf("Woah error: %v", logErr), 0, false)
 		return
 	}
 
@@ -47,13 +47,13 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
 	})
 
 	if err != nil {
-		progress(fmt.Sprintf("Woah error: %v", err), 0)
+		progress(fmt.Sprintf("Woah error: %v", err), 0, false)
 		return
 	}
 
 	f, err := os.Create("all-commits.ndjson")
 	if err != nil {
-		progress("Cannot create a file, aborting", 0)
+		progress("Cannot create a file, aborting", 0, false)
 		return
 	}
 	defer f.Close()
@@ -88,7 +88,7 @@ func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64)) {
 		}
 
 		totalBytes += b
-		progress(fmt.Sprintf("%d of %d commits", curr, count), float64(curr)/float64(count))
+		progress(fmt.Sprintf("%d of %d commits", curr, count), float64(curr)/float64(count), curr == count)
 
 		return nil
 	})

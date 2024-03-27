@@ -11,13 +11,19 @@ type UiModel struct {
 	Groups []Group
 }
 
+type ProgressMsg struct {
+	Group   string
+	BarIdx  int
+	Message string
+	Percent float64
+	Done    bool
+}
+
+type DoneMsg struct{}
+
 func (m UiModel) Init() tea.Cmd {
 	return nil
 }
-
-// This should take a specific message that is just "group" "name" "message" "percent"
-// Then it should find the appropriate field in the Model and update it along with the
-// corresponding progress bar
 
 func (m UiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -39,6 +45,16 @@ func (m UiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, c
 			}
 		}
+	case DoneMsg:
+		// Check if all groups and bars are done, if so, quit
+		for _, g := range m.Groups {
+			for _, b := range g.Bars {
+				if !b.Done {
+					return m, nil
+				}
+			}
+		}
+		return m, tea.Quit
 	}
 	return m, nil
 }
@@ -50,5 +66,5 @@ func (m UiModel) View() string {
 		groups = append(groups, g.View())
 	}
 
-	return strings.Join(groups, "\n\n")
+	return strings.Join(groups, "\n\n") + "\n"
 }

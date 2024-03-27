@@ -11,16 +11,10 @@ const (
 	maxWidth = 200
 )
 
-type ProgressMsg struct {
-	Group   string
-	BarIdx  int
-	Message string
-	Percent float64
-}
-
 type Bar struct {
 	Bar     progress.Model
 	Message string
+	Done    bool
 }
 
 type Group struct {
@@ -53,12 +47,19 @@ func (m Group) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(cmds...)
 
 	case ProgressMsg:
-		// fmt.Println(fmt.Sprintf("From group: %v %d, Msg: %v", m.Name, msg.BarIdx, msg))
+		var cmds []tea.Cmd
 		if msg.Group == m.Name && len(m.Bars) > msg.BarIdx {
 			b := m.Bars[msg.BarIdx]
 			b.Message = msg.Message
+			b.Done = msg.Done
 			c := b.Bar.SetPercent(msg.Percent)
-			return m, c
+			cmds = append(cmds, c)
+			if msg.Done {
+				cmds = append(cmds, func() tea.Msg {
+					return DoneMsg{}
+				})
+			}
+			return m, tea.Sequence(cmds...)
 		}
 	}
 
@@ -69,7 +70,11 @@ func (m Group) View() string {
 	var bars []string
 
 	for _, b := range m.Bars {
-		bars = append(bars, b.Bar.View()+"\n"+b.Message)
+		prefix := ""
+		if b.Done {
+			prefix = "✓ "
+		}
+		bars = append(bars, b.Bar.View()+"\n"+prefix+b.Message)
 	}
 
 	return m.Name + "\n" + strings.Join(bars, "\n")

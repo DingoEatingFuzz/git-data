@@ -20,7 +20,7 @@ const (
 type Script interface {
 	Source() Source
 	// TODO: If progress is going to channel bytes, maybe we need lifecycle hooks
-	Run(git *Git, progress func(string, float64))
+	Run(git *Git, progress func(string, float64, bool))
 }
 
 type Runner struct {
@@ -73,13 +73,14 @@ func (r *Runner) Run() {
 		// TODO: This should be concurrent, but we need to figure out file locking and such first
 		go func() {
 			for i, s := range groups[GitSource] {
-				s.Run(r.Git, func(msg string, progress float64) {
+				s.Run(r.Git, func(msg string, progress float64, done bool) {
 					// fmt.Println(fmt.Sprintf("Progress on %v (%d)", msg, int(progress*100)))
 					p.Send(ui.ProgressMsg{
 						Group:   "Git Sources",
 						BarIdx:  i,
 						Message: msg,
 						Percent: progress,
+						Done:    done,
 					})
 				})
 			}
