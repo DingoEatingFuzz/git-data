@@ -1,7 +1,7 @@
 package gitjson
 
 import (
-	"dingoeatingfuzz/git.json/ui"
+	"dingoeatingfuzz/git-data/ui"
 	"fmt"
 	"os"
 

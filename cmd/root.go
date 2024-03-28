@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"os"
 
-	"dingoeatingfuzz/git.json/pkg/gitjson"
-	scripts "dingoeatingfuzz/git.json/pkg/gitjson/scripts"
+	"dingoeatingfuzz/git-data/pkg/gitjson"
+	scripts "dingoeatingfuzz/git-data/pkg/gitjson/scripts"
 
 	"github.com/spf13/cobra"
 )

@@ -3,7 +3,7 @@ package gitjson
 import (
 	"bufio"
 	"context"
-	"dingoeatingfuzz/git.json/pkg/gitjson"
+	"dingoeatingfuzz/git-data/pkg/gitjson"
 	"encoding/json"
 	"fmt"
 	"os"

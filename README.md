@@ -1,4 +1,4 @@
-# git.json
+# git-data
 
 Turn a git or GitHub repo into a collection of json files.
 
@@ -14,9 +14,9 @@ Git is an invaluable data source but it's trapped in its built-for-purpose blobs
 
 ## Usage
 
-You can use git.json as a standalone tool:
+You can use git-data as a standalone tool:
 
 ```shellsession
-$ git.json https://github.com/hashicorp/vagrant
+$ git-data https://github.com/hashicorp/vagrant
 generating files...
 ```
