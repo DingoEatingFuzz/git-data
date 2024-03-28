@@ -1,4 +1,4 @@
-package gitjson
+package gitdata
 
 import (
 	"dingoeatingfuzz/git-data/ui"

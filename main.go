@@ -29,8 +29,8 @@ import (
 // 6. Other VCS APIs
 
 func main() {
-	if err := gitjson.Execute(); err != nil {
-		if err != gitjson.SilentErr {
+	if err := cmd.Execute(); err != nil {
+		if err != cmd.SilentErr {
 			fmt.Fprintln(os.Stderr, err)
 		}
 		os.Exit(1)

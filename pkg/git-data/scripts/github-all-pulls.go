@@ -1,9 +1,9 @@
-package gitjson
+package gitdata
 
 import (
 	"bufio"
 	"context"
-	"dingoeatingfuzz/git-data/pkg/gitjson"
+	"dingoeatingfuzz/git-data/pkg/git-data"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -60,15 +60,15 @@ type GitHubPullRequest struct {
 	ReactionsCount int       `json:"reactionsCount"`
 }
 
-func (ai *GitHubAllPulls) Source() gitjson.Source {
-	return gitjson.GitHubSource
+func (ai *GitHubAllPulls) Source() gitdata.Source {
+	return gitdata.GitHubSource
 }
 
 func (ai *GitHubAllPulls) Name() string {
 	return "All GitHub Pull Requests"
 }
 
-func (ai *GitHubAllPulls) Run(git *gitjson.Git, progress func(string, float64, bool)) {
+func (ai *GitHubAllPulls) Run(git *gitdata.Git, progress func(string, float64, bool)) {
 	progress("Started", 0, false)
 	r, _ := regexp.Compile("github.com/(.+?)/(.+?)(/|\\.git)?$")
 	matches := r.FindStringSubmatch(git.RepoUrl)

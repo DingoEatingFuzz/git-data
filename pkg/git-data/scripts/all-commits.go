@@ -1,8 +1,8 @@
-package gitjson
+package gitdata
 
 import (
 	"bufio"
-	gitjson "dingoeatingfuzz/git-data/pkg/gitjson"
+	"dingoeatingfuzz/git-data/pkg/git-data"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -27,15 +27,15 @@ type GitCommit struct {
 	Hash           string    `json:"hash"`
 }
 
-func (ac *AllCommits) Source() gitjson.Source {
-	return gitjson.GitSource
+func (ac *AllCommits) Source() gitdata.Source {
+	return gitdata.GitSource
 }
 
 func (ac *AllCommits) Name() string {
 	return "All Commits"
 }
 
-func (ac *AllCommits) Run(git *gitjson.Git, progress func(string, float64, bool)) {
+func (ac *AllCommits) Run(git *gitdata.Git, progress func(string, float64, bool)) {
 	count := 0
 	curr := 0
 	skipped := 0

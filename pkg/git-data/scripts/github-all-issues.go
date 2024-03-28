@@ -1,9 +1,9 @@
-package gitjson
+package gitdata
 
 import (
 	"bufio"
 	"context"
-	"dingoeatingfuzz/git-data/pkg/gitjson"
+	"dingoeatingfuzz/git-data/pkg/git-data"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -56,15 +56,15 @@ type user struct {
 	Login githubv4.String
 }
 
-func (ai *GitHubAllIssues) Source() gitjson.Source {
-	return gitjson.GitHubSource
+func (ai *GitHubAllIssues) Source() gitdata.Source {
+	return gitdata.GitHubSource
 }
 
 func (ai *GitHubAllIssues) Name() string {
 	return "All GitHub Issues"
 }
 
-func (ai *GitHubAllIssues) Run(git *gitjson.Git, progress func(string, float64, bool)) {
+func (ai *GitHubAllIssues) Run(git *gitdata.Git, progress func(string, float64, bool)) {
 	progress("Started", 0, false)
 	r, _ := regexp.Compile("github.com/(.+?)/(.+?)(/|\\.git)?$")
 	matches := r.FindStringSubmatch(git.RepoUrl)

@@ -1,12 +1,12 @@
-package gitjson
+package cmd
 
 import (
 	"errors"
 	"net/url"
 	"os"
 
-	"dingoeatingfuzz/git-data/pkg/gitjson"
-	scripts "dingoeatingfuzz/git-data/pkg/gitjson/scripts"
+	"dingoeatingfuzz/git-data/pkg/git-data"
+	scripts "dingoeatingfuzz/git-data/pkg/git-data/scripts"
 
 	"github.com/spf13/cobra"
 )
@@ -15,8 +15,8 @@ var SilentErr = errors.New("SilentErr")
 var UseDisk bool
 
 var RootCmd = &cobra.Command{
-	Use:           "gitjson",
-	Short:         "gitjson turns a git repo and a GitHub project into machine readable ndjson files",
+	Use:           "git-data",
+	Short:         "git-data turns a git repo and a GitHub project into machine readable ndjson files",
 	Args:          cobra.ExactArgs(1),
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -26,7 +26,7 @@ var RootCmd = &cobra.Command{
 
 		if IsUrl(args[0]) {
 			if UseDisk {
-				tmp, err := os.MkdirTemp("", "gitjson-")
+				tmp, err := os.MkdirTemp("", "gitdata-")
 				if err != nil {
 					return err
 				}
@@ -39,7 +39,7 @@ var RootCmd = &cobra.Command{
 			dir = args[0]
 		}
 
-		repo := &gitjson.Git{
+		repo := &gitdata.Git{
 			RepoUrl: repoUrl,
 			Dir:     dir,
 		}
@@ -48,8 +48,8 @@ var RootCmd = &cobra.Command{
 		repo.Clone()
 
 		// Create runner and run
-		runner := &gitjson.Runner{
-			Scripts: []gitjson.Script{
+		runner := &gitdata.Runner{
+			Scripts: []gitdata.Script{
 				&scripts.AllCommits{},
 				&scripts.AllCommitsWithFiles{},
 				&scripts.GitHubAllIssues{},
