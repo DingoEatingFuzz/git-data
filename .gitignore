@@ -19,3 +19,9 @@
 
 # Go workspace file
 go.work
+
+# Used in dev to export files
+data-files
+
+# Build
+git-data
