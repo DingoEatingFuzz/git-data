@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"regexp"
 	"time"
 
@@ -44,7 +45,7 @@ func (ac *AllCommitsWithFiles) Name() string {
 	return "All Commits (With Files)"
 }
 
-func (ac *AllCommitsWithFiles) Run(git *gitdata.Git, progress func(string, float64, bool)) {
+func (ac *AllCommitsWithFiles) Run(git *gitdata.Git, config *gitdata.RunnerConfig, progress func(string, float64, bool)) {
 	count := 0
 	curr := 0
 	skipped := 0
@@ -74,7 +75,7 @@ func (ac *AllCommitsWithFiles) Run(git *gitdata.Git, progress func(string, float
 
 	progress(fmt.Sprintf("Logging %d commits in main branch", count), 0, false)
 
-	f, err := os.Create("all-commits-with-files.ndjson")
+	f, err := os.Create(path.Join(config.DataDir, "all-commits-with-files.ndjson"))
 	if err != nil {
 		progress("Cannot create a file, aborting", 0, false)
 		return

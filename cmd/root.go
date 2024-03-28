@@ -13,6 +13,7 @@ import (
 
 var SilentErr = errors.New("SilentErr")
 var UseDisk bool
+var DataDir string
 
 var RootCmd = &cobra.Command{
 	Use:           "git-data",
@@ -44,7 +45,6 @@ var RootCmd = &cobra.Command{
 			Dir:     dir,
 		}
 
-		// TODO: stick this in a go routine (all git and vcs operations should be concurrent)
 		repo.Clone()
 
 		// Create runner and run
@@ -58,7 +58,9 @@ var RootCmd = &cobra.Command{
 			Git: repo,
 		}
 
-		runner.Run()
+		runner.Run(gitdata.RunnerConfig{
+			DataDir: DataDir,
+		})
 
 		return nil
 	},
@@ -85,5 +87,8 @@ func init() {
 		"Clone repo to disk instead of in memory",
 	)
 
-	// TODO: add destination dir flag (assume ./ by default)
+	RootCmd.Flags().StringVarP(
+		&DataDir, "data-dir", "d", "",
+		"Where to write exported files",
+	)
 }

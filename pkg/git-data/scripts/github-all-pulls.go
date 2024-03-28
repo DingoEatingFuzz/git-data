@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"regexp"
 	"time"
 
@@ -68,7 +69,7 @@ func (ai *GitHubAllPulls) Name() string {
 	return "All GitHub Pull Requests"
 }
 
-func (ai *GitHubAllPulls) Run(git *gitdata.Git, progress func(string, float64, bool)) {
+func (ai *GitHubAllPulls) Run(git *gitdata.Git, config *gitdata.RunnerConfig, progress func(string, float64, bool)) {
 	progress("Started", 0, false)
 	r, _ := regexp.Compile("github.com/(.+?)/(.+?)(/|\\.git)?$")
 	matches := r.FindStringSubmatch(git.RepoUrl)
@@ -121,7 +122,7 @@ func (ai *GitHubAllPulls) Run(git *gitdata.Git, progress func(string, float64, b
 		"cursor": (*githubv4.String)(nil), // Null after argument to get first page.
 	}
 
-	f, err := os.Create("github-all-pull-requests.ndjson")
+	f, err := os.Create(path.Join(config.DataDir, "github-all-pull-requests.ndjson"))
 	if err != nil {
 		progress("Cannot create a file, aborting", 0, false)
 		return

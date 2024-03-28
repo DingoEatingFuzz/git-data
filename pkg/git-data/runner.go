@@ -11,6 +11,10 @@ import (
 
 type Source int
 
+type RunnerConfig struct {
+	DataDir string
+}
+
 const (
 	GitSource Source = iota
 	GitHubSource
@@ -21,7 +25,7 @@ type Script interface {
 	Source() Source
 	Name() string
 	// TODO: If progress is going to channel bytes, maybe we need lifecycle hooks
-	Run(git *Git, progress func(string, float64, bool))
+	Run(git *Git, config *RunnerConfig, progress func(string, float64, bool))
 }
 
 type Runner struct {
@@ -31,7 +35,7 @@ type Runner struct {
 
 var p *tea.Program
 
-func (r *Runner) Run() {
+func (r *Runner) Run(config RunnerConfig) {
 	groups := map[Source][]Script{}
 
 	for _, s := range r.Scripts {
@@ -72,7 +76,7 @@ func (r *Runner) Run() {
 		// TODO: This should be concurrent, but we need to figure out file locking and such first
 		go func() {
 			for i, s := range groups[GitSource] {
-				s.Run(r.Git, func(msg string, progress float64, done bool) {
+				s.Run(r.Git, &config, func(msg string, progress float64, done bool) {
 					p.Send(ui.ProgressMsg{
 						Group:   "Git Sources",
 						BarIdx:  i,
@@ -87,7 +91,7 @@ func (r *Runner) Run() {
 
 	if len(groups[GitHubSource]) > 0 {
 		for i, s := range groups[GitHubSource] {
-			go s.Run(r.Git, func(msg string, progress float64, done bool) {
+			go s.Run(r.Git, &config, func(msg string, progress float64, done bool) {
 				p.Send(ui.ProgressMsg{
 					Group:   "GitHub Sources",
 					BarIdx:  i,
