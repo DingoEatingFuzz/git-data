@@ -19,8 +19,3 @@
 
 # Go workspace file
 go.work
-
-
-# go things
-git.json
-git-data
