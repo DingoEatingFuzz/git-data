@@ -38,6 +38,16 @@ type issue struct {
 	}
 }
 
+type rateLimit struct {
+	Remaining githubv4.Int
+	Used      githubv4.Int
+	ResetAt   githubv4.DateTime
+}
+
+type user struct {
+	Login githubv4.String
+}
+
 type GitHubIssue struct {
 	Owner          string    `json:"owner"`
 	Repo           string    `json:"repo"`
@@ -51,10 +61,6 @@ type GitHubIssue struct {
 	Participants   []string  `json:"participants"`
 	CommentsCount  int       `json:"commentsCount"`
 	ReactionsCount int       `json:"reactionsCount"`
-}
-
-type user struct {
-	Login githubv4.String
 }
 
 func (ai *GitHubAllIssues) Source() gitdata.Source {
@@ -89,6 +95,7 @@ func (ai *GitHubAllIssues) Run(git *gitdata.Git, config *gitdata.RunnerConfig, p
 				}
 			} `graphql:"issues(first: $num, after: $cursor)"`
 		} `graphql:"repository(owner: $owner, name: $repo)"`
+		RateLimit rateLimit
 	}
 
 	var c struct {
@@ -165,7 +172,7 @@ func (ai *GitHubAllIssues) Run(git *gitdata.Git, config *gitdata.RunnerConfig, p
 			}
 
 			w.Write(str)
-			progress(fmt.Sprintf("%d of %d issues", curr, length), float64(curr)/float64(length), false)
+			progress(fmt.Sprintf("%d of %d issues (rate limit: %d)", curr, length, q.RateLimit.Remaining), float64(curr)/float64(length), false)
 		}
 
 		if !q.Repository.Issues.PageInfo.HasNextPage {
@@ -173,6 +180,12 @@ func (ai *GitHubAllIssues) Run(git *gitdata.Git, config *gitdata.RunnerConfig, p
 		}
 
 		variables["cursor"] = githubv4.NewString(q.Repository.Issues.PageInfo.EndCursor)
+
+		if q.RateLimit.Remaining < 10 {
+			diff := q.RateLimit.ResetAt.Sub(time.Now())
+			progress(fmt.Sprintf("%d of %d issues Hit the rate limit! Waiting %f seconds", curr, length, diff.Seconds()), float64(curr)/float64(length), false)
+			time.Sleep(diff)
+		}
 	}
 
 	w.Flush()

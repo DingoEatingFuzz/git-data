@@ -93,6 +93,7 @@ func (ai *GitHubAllPulls) Run(git *gitdata.Git, config *gitdata.RunnerConfig, pr
 				}
 			} `graphql:"pullRequests(first: $num, after: $cursor)"`
 		} `graphql:"repository(owner: $owner, name: $repo)"`
+		RateLimit rateLimit
 	}
 
 	var c struct {
@@ -181,6 +182,12 @@ func (ai *GitHubAllPulls) Run(git *gitdata.Git, config *gitdata.RunnerConfig, pr
 		}
 
 		variables["cursor"] = githubv4.NewString(q.Repository.PullRequests.PageInfo.EndCursor)
+
+		if q.RateLimit.Remaining < 10 {
+			diff := q.RateLimit.ResetAt.Sub(time.Now())
+			progress(fmt.Sprintf("%d of %d pulls Hit the rate limit! Waiting %f seconds", curr, length, diff.Seconds()), float64(curr)/float64(length), false)
+			time.Sleep(diff)
+		}
 	}
 
 	w.Flush()
