@@ -75,7 +75,7 @@ func (ac *AllCommitsWithFiles) Run(git *gitdata.Git, config *gitdata.RunnerConfi
 
 	progress(fmt.Sprintf("Logging %d commits in main branch", count), 0, false)
 
-	f, err := os.Create(path.Join(config.DataDir, "all-commits-with-files.ndjson"))
+	f, err := os.Create(path.Join(config.DataDir, config.FilePrefix+"all-commits-with-files"+config.FileSuffix+".ndjson"))
 	if err != nil {
 		progress("Cannot create a file, aborting", 0, false)
 		return

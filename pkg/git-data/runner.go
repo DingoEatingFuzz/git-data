@@ -12,7 +12,9 @@ import (
 type Source int
 
 type RunnerConfig struct {
-	DataDir string
+	DataDir    string
+	FilePrefix string
+	FileSuffix string
 }
 
 const (

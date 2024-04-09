@@ -118,7 +118,7 @@ func (ai *GitHubAllIssues) Run(git *gitdata.Git, config *gitdata.RunnerConfig, p
 		"cursor": (*githubv4.String)(nil), // Null after argument to get first page.
 	}
 
-	f, err := os.Create(path.Join(config.DataDir, "github-all-issues.ndjson"))
+	f, err := os.Create(path.Join(config.DataDir, config.FilePrefix+"github-all-issues"+config.FileSuffix+".ndjson"))
 	if err != nil {
 		progress("Cannot create a file, aborting", 0, false)
 		return

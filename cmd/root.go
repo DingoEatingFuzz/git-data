@@ -14,6 +14,8 @@ import (
 var SilentErr = errors.New("SilentErr")
 var UseDisk bool
 var DataDir string
+var FilePrefix string
+var FileSuffix string
 
 var RootCmd = &cobra.Command{
 	Use:           "git-data",
@@ -59,7 +61,9 @@ var RootCmd = &cobra.Command{
 		}
 
 		runner.Run(gitdata.RunnerConfig{
-			DataDir: DataDir,
+			DataDir:    DataDir,
+			FilePrefix: FilePrefix,
+			FileSuffix: FileSuffix,
 		})
 
 		return nil
@@ -90,5 +94,15 @@ func init() {
 	RootCmd.Flags().StringVarP(
 		&DataDir, "data-dir", "d", "",
 		"Where to write exported files",
+	)
+
+	RootCmd.Flags().StringVarP(
+		&FilePrefix, "prefix", "p", "",
+		"A common prefix for all exported file names",
+	)
+
+	RootCmd.Flags().StringVarP(
+		&FileSuffix, "suffix", "s", "",
+		"A common suffx for all exported file names",
 	)
 }

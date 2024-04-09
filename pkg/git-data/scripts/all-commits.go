@@ -64,7 +64,7 @@ func (ac *AllCommits) Run(git *gitdata.Git, config *gitdata.RunnerConfig, progre
 		return
 	}
 
-	f, err := os.Create(path.Join(config.DataDir, "all-commits.ndjson"))
+	f, err := os.Create(path.Join(config.DataDir, config.FilePrefix+"all-commits"+config.FileSuffix+".ndjson"))
 	if err != nil {
 		progress("Cannot create a file, aborting", 0, false)
 		return
