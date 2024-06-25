@@ -44,7 +44,9 @@ func (r *Runner) Run(config RunnerConfig) {
 		groups[s.Source()] = append(groups[s.Source()], s)
 	}
 
-	m := ui.UiModel{}
+	m := ui.UiModel{
+		Name: r.Git.RepoUrl,
+	}
 
 	// First pass: initialize the model
 	m.Groups = append(m.Groups, ui.Group{
@@ -92,17 +94,20 @@ func (r *Runner) Run(config RunnerConfig) {
 	}
 
 	if len(groups[GitHubSource]) > 0 {
-		for i, s := range groups[GitHubSource] {
-			go s.Run(r.Git, &config, func(msg string, progress float64, done bool) {
-				p.Send(ui.ProgressMsg{
-					Group:   "GitHub Sources",
-					BarIdx:  i,
-					Message: msg,
-					Percent: progress,
-					Done:    done,
+		// This is run serially out of an abundance of fear of GitHub's rate limiter
+		go func() {
+			for i, s := range groups[GitHubSource] {
+				s.Run(r.Git, &config, func(msg string, progress float64, done bool) {
+					p.Send(ui.ProgressMsg{
+						Group:   "GitHub Sources",
+						BarIdx:  i,
+						Message: msg,
+						Percent: progress,
+						Done:    done,
+					})
 				})
-			})
-		}
+			}
+		}()
 	}
 
 	if _, err := p.Run(); err != nil {

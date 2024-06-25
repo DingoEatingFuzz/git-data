@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/gofri/go-github-ratelimit/github_ratelimit"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
@@ -81,7 +82,14 @@ func (ai *GitHubAllIssues) Run(git *gitdata.Git, config *gitdata.RunnerConfig, p
 	src := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: os.Getenv("GITHUB_TOKEN")},
 	)
-	httpClient := oauth2.NewClient(context.Background(), src)
+
+	rateLimiter, rErr := github_ratelimit.NewRateLimitWaiterClient(nil)
+	if rErr != nil {
+		progress(fmt.Sprintf("Error making rate limiter: %v", rErr), 0, false)
+	}
+
+	tripperCtx := context.WithValue(context.Background(), oauth2.HTTPClient, rateLimiter)
+	httpClient := oauth2.NewClient(tripperCtx, src)
 
 	client := githubv4.NewClient(httpClient)
 
@@ -139,7 +147,7 @@ func (ai *GitHubAllIssues) Run(git *gitdata.Git, config *gitdata.RunnerConfig, p
 	for {
 		err := client.Query(context.Background(), &q, variables)
 		if err != nil {
-			progress(fmt.Sprintf("Woah error: %v", err), 0, false)
+			progress(fmt.Sprintf("Woah irrecoverable error: %v", err), 0, false)
 			return
 		}
 

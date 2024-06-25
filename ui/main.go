@@ -8,6 +8,7 @@ import (
 )
 
 type UiModel struct {
+	Name   string
 	Groups []Group
 }
 
@@ -66,5 +67,5 @@ func (m UiModel) View() string {
 		groups = append(groups, g.View())
 	}
 
-	return strings.Join(groups, "\n") + "\n"
+	return m.Name + "\n\n" + strings.Join(groups, "\n") + "\n"
 }
