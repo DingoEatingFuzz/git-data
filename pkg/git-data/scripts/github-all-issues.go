@@ -36,6 +36,9 @@ type issue struct {
 		Reactions struct {
 			TotalCount githubv4.Int
 		}
+		Labels struct {
+			Nodes []label
+		} `graphql:"labels(first: 10)"`
 	}
 }
 
@@ -43,6 +46,10 @@ type rateLimit struct {
 	Remaining githubv4.Int
 	Used      githubv4.Int
 	ResetAt   githubv4.DateTime
+}
+
+type label struct {
+	Name githubv4.String
 }
 
 type user struct {
@@ -62,6 +69,7 @@ type GitHubIssue struct {
 	Participants   []string  `json:"participants"`
 	CommentsCount  int       `json:"commentsCount"`
 	ReactionsCount int       `json:"reactionsCount"`
+	Labels         []string  `json:"labels"`
 }
 
 func (ai *GitHubAllIssues) Source() gitdata.Source {
@@ -166,6 +174,11 @@ func (ai *GitHubAllIssues) Run(git *gitdata.Git, config *gitdata.RunnerConfig, p
 			var participants []string
 			for _, p := range issue.Node.Participants.Nodes {
 				participants = append(participants, string(p.Login))
+			}
+
+			var labels []string
+			for _, p := range issue.Node.Labels.Nodes {
+				labels = append(labels, string(p.Name))
 			}
 
 			row := &GitHubIssue{

@@ -40,6 +40,9 @@ type pullRequest struct {
 		Reactions struct {
 			TotalCount githubv4.Int
 		}
+		Labels struct {
+			Nodes []label
+		} `graphql:"labels(first: 10)"`
 	}
 }
 
@@ -60,6 +63,7 @@ type GitHubPullRequest struct {
 	Participants   []string  `json:"participants"`
 	CommentsCount  int       `json:"commentsCount"`
 	ReactionsCount int       `json:"reactionsCount"`
+	Labels         []string  `json:"labels"`
 }
 
 func (ai *GitHubAllPulls) Source() gitdata.Source {
@@ -164,6 +168,11 @@ func (ai *GitHubAllPulls) Run(git *gitdata.Git, config *gitdata.RunnerConfig, pr
 			var participants []string
 			for _, p := range pull.Node.Participants.Nodes {
 				participants = append(participants, string(p.Login))
+			}
+
+			var labels []string
+			for _, p := range pull.Node.Labels.Nodes {
+				labels = append(labels, string(p.Name))
 			}
 
 			row := &GitHubPullRequest{
