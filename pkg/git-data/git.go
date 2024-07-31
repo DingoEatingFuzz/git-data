@@ -6,6 +6,7 @@ import (
 	"os"
 
 	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/storage/memory"
 )
 
@@ -21,6 +22,10 @@ func (g *Git) Clone() *Git {
 		repo, gitErr := gogit.Clone(memory.NewStorage(), nil, &gogit.CloneOptions{
 			URL:      g.RepoUrl,
 			Progress: os.Stdout,
+			Auth: &http.BasicAuth{
+				Username: os.Getenv("GITHUB_USER"),
+				Password: os.Getenv("GITHUB_TOKEN"),
+			},
 		})
 
 		if gitErr != nil {
