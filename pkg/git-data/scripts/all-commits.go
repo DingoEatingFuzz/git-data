@@ -40,7 +40,6 @@ func (ac *AllCommits) Run(git *gitdata.Git, config *gitdata.RunnerConfig, progre
 	count := 0
 	curr := 0
 	skipped := 0
-	totalBytes := 0
 
 	r, _ := regexp.Compile("github.com/(.+?)/(.+?)(/|\\.git)?$")
 	matches := r.FindStringSubmatch(git.RepoUrl)
@@ -73,6 +72,7 @@ func (ac *AllCommits) Run(git *gitdata.Git, config *gitdata.RunnerConfig, progre
 
 	// TODO: Should scripts be responsible for writing files? Or should they send bytes to a channel?
 	w := bufio.NewWriter(f)
+	enc := json.NewEncoder(w)
 
 	iter, _ := git.Repo.Log(&gogit.LogOptions{})
 	_ = iter.ForEach(func(c *object.Commit) error {
@@ -90,19 +90,12 @@ func (ac *AllCommits) Run(git *gitdata.Git, config *gitdata.RunnerConfig, progre
 			Hash:           c.Hash.String(),
 		}
 
-		str, err := json.Marshal(commit)
+		err := enc.Encode(commit)
 		if err != nil {
 			skipped += 1
 			return nil
 		}
 
-		b, werr := w.Write(str)
-		if werr != nil {
-			skipped += 1
-			return nil
-		}
-
-		totalBytes += b
 		progress(fmt.Sprintf("%d of %d commits", curr, count), float64(curr)/float64(count), curr == count)
 
 		return nil

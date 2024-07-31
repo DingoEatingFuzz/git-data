@@ -140,13 +140,22 @@ func (ai *GitHubAllPulls) Run(git *gitdata.Git, config *gitdata.RunnerConfig, pr
 
 	// TODO: Should scripts be responsible for writing files? Or should they send bytes to a channel?
 	w := bufio.NewWriter(f)
+	enc := json.NewEncoder(w)
 	curr := 0
+	retries := 0
 
 	for {
 		err := client.Query(context.Background(), &q, variables)
 		if err != nil {
-			progress(fmt.Sprintf("Woah error: %v", err), 0, false)
-			return
+			progress(fmt.Sprintf("Paging error (waiting 30s to retry): %v", err), 0, false)
+			time.Sleep(30 * time.Second)
+			retries++
+			if retries >= 10 {
+				progress(fmt.Sprintf("Giving up after 10 retries: %v", variables), 0, false)
+				break
+			} else {
+				continue
+			}
 		}
 
 		for _, pull := range q.Repository.PullRequests.Edges {
@@ -174,14 +183,14 @@ func (ai *GitHubAllPulls) Run(git *gitdata.Git, config *gitdata.RunnerConfig, pr
 				Participants:   participants,
 				CommentsCount:  int(pull.Node.Comments.TotalCount),
 				ReactionsCount: int(pull.Node.Reactions.TotalCount),
+				Labels:         labels,
 			}
 
-			str, err := json.Marshal(row)
+			err := enc.Encode(row)
 			if err != nil {
 				continue
 			}
 
-			w.Write(str)
 			progress(fmt.Sprintf("%d of %d pulls (rate limit: %d)", curr, length, q.RateLimit.Remaining), float64(curr)/float64(length), false)
 		}
 
