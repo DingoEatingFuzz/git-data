@@ -24,4 +24,4 @@ go.work
 data-files
 
 # Build
-git-data
+./git-data
